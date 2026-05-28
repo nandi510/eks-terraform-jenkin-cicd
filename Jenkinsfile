@@ -49,30 +49,30 @@ pipeline {
         // ── 2. Terraform Init ─────────────────────────────────────────────────
         stage('Terraform Init') {
             steps {
-                dir('eks-terraform') {          // folder inside your repo
+                          // folder inside your repo
                     sh '''
                         terraform version
                         terraform init \
                           -backend=true \
                           -reconfigure
                     '''
-                }
+                
             }
         }
 
         // ── 3. Terraform Validate ─────────────────────────────────────────────
         stage('Terraform Validate') {
             steps {
-                dir('eks-terraform') {
+                
                     sh 'terraform validate'
-                }
+                
             }
         }
 
         // ── 4. Terraform Plan ─────────────────────────────────────────────────
         stage('Terraform Plan') {
             steps {
-                dir('eks-terraform') {
+                
                     sh """
                         terraform plan \
                           -var-file=terraform.tfvars \
@@ -84,7 +84,7 @@ pipeline {
                     sh "terraform show -no-color ${PLAN_FILE} > plan_output.txt"
                     // Archive plan so reviewers can download it from Jenkins
                     archiveArtifacts artifacts: 'plan_output.txt', fingerprint: true
-                }
+                
             }
         }
 
@@ -96,7 +96,7 @@ pipeline {
             steps {
                 script {
                     // Print plan summary in console for quick review
-                    sh 'cat eks-terraform/plan_output.txt'
+                    sh 'cat plan_output.txt'
 
                     // Gate — a human must click Proceed or Abort within 30 min
                     timeout(time: 30, unit: 'MINUTES') {
@@ -125,9 +125,9 @@ pipeline {
                 expression { params.TF_ACTION == 'plan-apply' }
             }
             steps {
-                dir('eks-terraform') {
+                
                     sh "terraform apply -auto-approve ${PLAN_FILE}"
-                }
+                
             }
         }
 
@@ -156,13 +156,13 @@ pipeline {
                 expression { params.TF_ACTION == 'destroy' }
             }
             steps {
-                dir('eks-terraform') {
+                
                     sh '''
                         terraform destroy \
                           -var-file=terraform.tfvars \
                           -auto-approve
                     '''
-                }
+                
             }
         }
     }
